@@ -43,8 +43,23 @@ class TodoApp {
 
         this.todos.unshift(todo);
         this.todoInput.value = '';
+
+        // Add input animation
+        this.todoInput.classList.add('animate-input');
+        setTimeout(() => {
+            this.todoInput.classList.remove('animate-input');
+        }, 300);
+
         this.saveTodos();
         this.render();
+
+        // Animate new todo item
+        setTimeout(() => {
+            const newItem = this.todoList.querySelector('.todo-item:first-child');
+            if (newItem) {
+                newItem.classList.add('todo-item-enter');
+            }
+        }, 10);
     }
 
     deleteTodo(id) {
@@ -96,8 +111,17 @@ class TodoApp {
         const completed = this.todos.filter(todo => todo.completed).length;
         const pending = total - completed;
 
-        this.totalTasks.textContent = `${total} task${total !== 1 ? 's' : ''} (${pending} pending)`;
-        this.clearCompleted.style.display = completed > 0 ? 'block' : 'none';
+        let statsText = '';
+        if (total === 0) {
+            statsText = 'No tasks yet';
+        } else if (pending === 0) {
+            statsText = `🎉 All ${total} task${total !== 1 ? 's' : ''} completed!`;
+        } else {
+            statsText = `${pending} of ${total} task${total !== 1 ? 's' : ''} remaining`;
+        }
+
+        this.totalTasks.textContent = statsText;
+        this.clearCompleted.style.display = completed > 0 ? 'flex' : 'none';
     }
 
     render() {
@@ -124,22 +148,37 @@ class TodoApp {
                     onchange="app.toggleTodo(${todo.id})"
                 >
                 <span class="todo-text">${this.escapeHtml(todo.text)}</span>
-                <button class="delete-btn" onclick="app.deleteTodo(${todo.id})">Delete</button>
+                <button class="delete-btn" onclick="app.deleteTodo(${todo.id})" title="Delete task">
+                    🗑️
+                </button>
             </li>
         `;
     }
 
     getEmptyStateHTML() {
-        const messages = {
-            all: 'No tasks yet. Add one above!',
-            pending: 'No pending tasks. Great job!',
-            completed: 'No completed tasks yet.'
+        const states = {
+            all: {
+                icon: '✨',
+                title: 'Ready to get started?',
+                message: 'Add your first task above and make today productive!'
+            },
+            pending: {
+                icon: '🎉',
+                title: 'All caught up!',
+                message: 'No pending tasks. You\'re doing amazing!'
+            },
+            completed: {
+                icon: '💪',
+                title: 'Keep going!',
+                message: 'Complete some tasks to see them here.'
+            }
         };
 
+        const state = states[this.currentFilter];
         return `
             <li class="empty-state">
-                <h3>📝</h3>
-                <p>${messages[this.currentFilter]}</p>
+                <h3>${state.title}</h3>
+                <p>${state.message}</p>
             </li>
         `;
     }
@@ -172,7 +211,7 @@ class TodoApp {
         ripple.style.width = '20px';
         ripple.style.height = '20px';
         ripple.style.borderRadius = '50%';
-        ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+        ripple.style.background = 'rgba(99, 102, 241, 0.4)';
         ripple.style.transform = 'translate(-50%, -50%)';
         ripple.style.pointerEvents = 'none';
         ripple.style.zIndex = '10';
